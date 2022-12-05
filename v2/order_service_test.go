@@ -300,19 +300,19 @@ func (s *orderServiceTestSuite) TestCreateOCO() {
 		TransactionTime:   1574040868128,
 		Symbol:            "LTCBTC",
 		Orders: []*OCOOrder{
-			&OCOOrder{
+			{
 				Symbol:        "LTCBTC",
 				OrderID:       2,
 				ClientOrderID: "pO9ufTiFGg3nw2fOdgeOXa",
 			},
-			&OCOOrder{
+			{
 				Symbol:        "LTCBTC",
 				OrderID:       3,
 				ClientOrderID: "TXOvglzXuaubXAaENpaRCB",
 			},
 		},
 		OrderReports: []*OCOOrderReport{
-			&OCOOrderReport{
+			{
 				Symbol:                   "LTCBTC",
 				OrderID:                  2,
 				OrderListID:              0,
@@ -327,7 +327,7 @@ func (s *orderServiceTestSuite) TestCreateOCO() {
 				Side:                     SideTypeSell,
 				StopPrice:                "1.00000000",
 			},
-			&OCOOrderReport{
+			{
 				Symbol:                   "LTCBTC",
 				OrderID:                  3,
 				OrderListID:              0,

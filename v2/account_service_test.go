@@ -140,13 +140,13 @@ func (s *accountServiceTestSuite) TestGetAccountSnapshot() {
 		Code: 200,
 		Msg:  "",
 		Snapshot: []*SnapshotVos{
-			&SnapshotVos{
+			{
 				Type:       "spot",
 				UpdateTime: 1576281599000,
 				Data: &SnapshotData{
 					TotalAssetOfBtc: "0.09942700",
 					Balances: []*SnapshotBalances{
-						&SnapshotBalances{
+						{
 							Asset:  "BTC",
 							Free:   "0.09905021",
 							Locked: "0.00000000",

@@ -153,7 +153,7 @@ func WsMarkPriceServeWithRate(symbol string, rate time.Duration, handler WsMarkP
 	case 1 * time.Second:
 		rateStr = "@1s"
 	default:
-		return nil, nil, errors.New("Invalid rate")
+		return nil, nil, errors.New("invalid rate")
 	}
 	endpoint := fmt.Sprintf("%s/%s@markPrice%s", getWsEndpoint(), strings.ToLower(symbol), rateStr)
 	return wsMarkPriceServe(endpoint, handler, errHandler)
@@ -194,7 +194,7 @@ func WsAllMarkPriceServeWithRate(rate time.Duration, handler WsAllMarkPriceHandl
 	case 1 * time.Second:
 		rateStr = "@1s"
 	default:
-		return nil, nil, errors.New("Invalid rate")
+		return nil, nil, errors.New("invalid rate")
 	}
 	endpoint := fmt.Sprintf("%s/!markPrice@arr%s", getWsEndpoint(), rateStr)
 	return wsAllMarkPriceServe(endpoint, handler, errHandler)
@@ -314,18 +314,40 @@ func WsMiniMarketTickerServe(symbol string, handler WsMiniMarketTickerHandler, e
 	return wsServe(cfg, wsHandler, errHandler)
 }
 
-// WsAllMiniMarketTickerEvent define an array of websocket mini market ticker events.
-type WsAllMiniMarketTickerEvent []*WsMiniMarketTickerEvent
+// WsMiniMarketsTickerEvent define an array of websocket mini market ticker events.
+type WsMiniMarketsTickerEvent []*WsMiniMarketTickerEvent
 
-// WsAllMiniMarketTickerHandler handle websocket that pushes price and funding rate for all markets.
-type WsAllMiniMarketTickerHandler func(event WsAllMiniMarketTickerEvent)
+// WsMiniMarketsTickerHandler handle websocket that pushes price and funding rate for all markets.
+type WsMiniMarketsTickerHandler func(event WsMiniMarketsTickerEvent)
 
 // WsAllMiniMarketTickerServe serve websocket that pushes price and funding rate for all markets.
-func WsAllMiniMarketTickerServe(handler WsAllMiniMarketTickerHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+func WsAllMiniMarketTickerServe(handler WsMiniMarketsTickerHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
 	endpoint := fmt.Sprintf("%s/!miniTicker@arr", getWsEndpoint())
 	cfg := newWsConfig(endpoint)
 	wsHandler := func(message []byte) {
-		var event WsAllMiniMarketTickerEvent
+		var event WsMiniMarketsTickerEvent
+		err := json.Unmarshal(message, &event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return wsServe(cfg, wsHandler, errHandler)
+}
+
+// WsCombinedMiniMarketsStatServe serve websocket that push mini version of 24hr statistics for multiple markets every 500 ms
+func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketsTickerHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+	if len(symbols) == 0 || len(symbols) > 200 {
+		return nil, nil, errors.New("the length of symbols must be greater than 0 and less than 200")
+	}
+	endpoint := fmt.Sprintf("%s/%s@miniTicker", getCombinedEndpoint(), strings.ToLower(symbols[0]))
+	for _, s := range symbols[1:] {
+		endpoint += fmt.Sprintf("/%s@miniTicker", strings.ToLower(s))
+	}
+	cfg := newWsConfig(endpoint)
+	wsHandler := func(message []byte) {
+		var event WsMiniMarketsTickerEvent
 		err := json.Unmarshal(message, &event)
 		if err != nil {
 			errHandler(err)
@@ -522,7 +544,7 @@ type WsDepthHandler func(event *WsDepthEvent)
 
 func wsPartialDepthServe(symbol string, levels int, rate *time.Duration, handler WsDepthHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
 	if levels != 5 && levels != 10 && levels != 20 {
-		return nil, nil, errors.New("Invalid levels")
+		return nil, nil, errors.New("invalid levels")
 	}
 	levelsStr := fmt.Sprintf("%d", levels)
 	return wsDepthServe(symbol, levelsStr, rate, handler, errHandler)
@@ -651,7 +673,7 @@ func wsDepthServe(symbol string, levels string, rate *time.Duration, handler WsD
 		case 100 * time.Millisecond:
 			rateStr = "@100ms"
 		default:
-			return nil, nil, errors.New("Invalid rate")
+			return nil, nil, errors.New("invalid rate")
 		}
 	}
 	endpoint := fmt.Sprintf("%s/%s@depth%s%s", getWsEndpoint(), strings.ToLower(symbol), levels, rateStr)

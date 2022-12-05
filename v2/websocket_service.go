@@ -1,6 +1,7 @@
 package binance
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -708,15 +709,15 @@ type WsMarketStatEvent struct {
 	Count              int64  `json:"n"`
 }
 
-// WsAllMiniMarketsStatServeHandler handle websocket that push all mini-ticker market statistics for 24hr
-type WsAllMiniMarketsStatServeHandler func(event WsAllMiniMarketsStatEvent)
+// WsMiniMarketsStatServeHandler handle websocket that push multiple mini-ticker markets statistics for 24hr
+type WsMiniMarketsStatServeHandler func(event WsMiniMarketsStatEvent)
 
 // WsAllMiniMarketsStatServe serve websocket that push mini version of 24hr statistics for all market every second
-func WsAllMiniMarketsStatServe(handler WsAllMiniMarketsStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+func WsAllMiniMarketsStatServe(handler WsMiniMarketsStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
 	endpoint := fmt.Sprintf("%s/!miniTicker@arr", getWsEndpoint())
 	cfg := newWsConfig(endpoint)
 	wsHandler := func(message []byte) {
-		var event WsAllMiniMarketsStatEvent
+		var event WsMiniMarketsStatEvent
 		err := json.Unmarshal(message, &event)
 		if err != nil {
 			errHandler(err)
@@ -727,11 +728,11 @@ func WsAllMiniMarketsStatServe(handler WsAllMiniMarketsStatServeHandler, errHand
 	return wsServe(cfg, wsHandler, errHandler)
 }
 
-// WsAllMiniMarketsStatEvent define array of websocket market mini-ticker statistics events
-type WsAllMiniMarketsStatEvent []*WsMiniMarketsStatEvent
+// WsMiniMarketsStatEvent define array of websocket market mini-ticker statistics events
+type WsMiniMarketsStatEvent []*WsMiniMarketStatEvent
 
-// WsMiniMarketsStatEvent define websocket market mini-ticker statistics event
-type WsMiniMarketsStatEvent struct {
+// WsMiniMarketStatEvent define websocket market mini-ticker statistics event
+type WsMiniMarketStatEvent struct {
 	Event       string `json:"e"`
 	Time        int64  `json:"E"`
 	Symbol      string `json:"s"`
@@ -741,6 +742,47 @@ type WsMiniMarketsStatEvent struct {
 	LowPrice    string `json:"l"`
 	BaseVolume  string `json:"v"`
 	QuoteVolume string `json:"q"`
+}
+
+// WsMiniMarketStatServeHandler handle websocket that push mini-ticker market statistics for 24hr
+type WsMiniMarketStatServeHandler func(event WsMiniMarketStatEvent)
+
+// WsMiniMarketStatServe serve websocket that push mini version of 24hr statistics for market every 500 ms
+func WsMiniMarketStatServe(symbol string, handler WsMiniMarketStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+	endpoint := fmt.Sprintf("%s/%s@miniTicker", getWsEndpoint(), strings.ToLower(symbol))
+	cfg := newWsConfig(endpoint)
+	wsHandler := func(message []byte) {
+		var event WsMiniMarketStatEvent
+		err := json.Unmarshal(message, &event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return wsServe(cfg, wsHandler, errHandler)
+}
+
+// WsCombinedMiniMarketsStatServe serve websocket that push mini version of 24hr statistics for multiple markets every 500 ms
+func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketsStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+	if len(symbols) == 0 || len(symbols) > 200 {
+		return nil, nil, errors.New("the length of symbols must be greater than 0 and less than 200")
+	}
+	endpoint := fmt.Sprintf("%s/%s@miniTicker", getCombinedEndpoint(), strings.ToLower(symbols[0]))
+	for _, s := range symbols[1:] {
+		endpoint += fmt.Sprintf("/%s@miniTicker", strings.ToLower(s))
+	}
+	cfg := newWsConfig(endpoint)
+	wsHandler := func(message []byte) {
+		var event WsMiniMarketsStatEvent
+		err := json.Unmarshal(message, &event)
+		if err != nil {
+			errHandler(err)
+			return
+		}
+		handler(event)
+	}
+	return wsServe(cfg, wsHandler, errHandler)
 }
 
 // WsBookTickerEvent define websocket best book ticker event.

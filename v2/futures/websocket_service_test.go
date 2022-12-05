@@ -519,7 +519,7 @@ func (s *websocketServiceTestSuite) TestAllMiniMarketTickerServe() {
 	s.mockWsServe(data, errors.New(fakeErrMsg))
 	defer s.assertWsServe()
 
-	doneC, stopC, err := WsAllMiniMarketTickerServe(func(event WsAllMiniMarketTickerEvent) {
+	doneC, stopC, err := WsAllMiniMarketTickerServe(func(event WsMiniMarketsTickerEvent) {
 		e := []*WsMiniMarketTickerEvent{{
 			Event:       "24hrMiniTicker",
 			Time:        123456789,

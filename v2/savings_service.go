@@ -251,7 +251,7 @@ func (s *ListSavingsFixedAndActivityProductsService) Do(ctx context.Context, opt
 	if s.status != "" {
 		m["status"] = s.status
 	}
-	if s.isSortAsc != true {
+	if !s.isSortAsc {
 		m["isSortAsc"] = s.isSortAsc
 	}
 	if s.sortBy != "" {
