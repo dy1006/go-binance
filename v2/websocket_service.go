@@ -758,7 +758,7 @@ func WsMiniMarketStatServe(symbol string, handler WsMiniMarketStatServeHandler, 
 			errHandler(err)
 			return
 		}
-		handler(event)
+		handler(&event)
 	}
 	return wsServe(cfg, wsHandler, errHandler)
 }
