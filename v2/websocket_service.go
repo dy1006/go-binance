@@ -764,7 +764,7 @@ func WsMiniMarketStatServe(symbol string, handler WsMiniMarketStatServeHandler, 
 }
 
 // WsCombinedMiniMarketsStatServe serve websocket that push mini version of 24hr statistics for multiple markets every 500 ms
-func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketsStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
+func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
 	if len(symbols) == 0 || len(symbols) > 200 {
 		return nil, nil, errors.New("the length of symbols must be greater than 0 and less than 200")
 	}
@@ -774,13 +774,13 @@ func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketsStatS
 	}
 	cfg := newWsConfig(endpoint)
 	wsHandler := func(message []byte) {
-		var event WsMiniMarketsStatEvent
+		var event WsMiniMarketStatEvent
 		err := json.Unmarshal(message, &event)
 		if err != nil {
 			errHandler(err)
 			return
 		}
-		handler(event)
+		handler(&event)
 	}
 	return wsServe(cfg, wsHandler, errHandler)
 }
