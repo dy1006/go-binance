@@ -1363,66 +1363,6 @@ func (s *websocketServiceTestSuite) TestWsAllMiniMarketsStatServe() {
 	<-doneC
 }
 
-func (s *websocketServiceTestSuite) TestWsCombinedMiniMarketsStatServe() {
-	data := []byte(`[{
-  		"e": "24hrMiniTicker",
-    	"E": 1523658017154,
-    	"s": "BNBBTC",
-   	 	"c": "0.00175640",
-    	"o": "0.00161200",
-    	"h": "0.00176000",
-    	"l": "0.00159370",
-    	"v": "3479863.89000000",
-    	"q": "5725.90587704"
-	},{
-  		"e": "24hrMiniTicker",
-    	"E": 1523658017133,
-    	"s": "BNBETH",
-    	"c": "0.02827000",
-    	"o": "0.02628100",
-    	"h": "0.02830300",
-    	"l": "0.02469400",
-    	"v": "456266.78000000",
-    	"q": "11873.11095682"
-	}]`)
-	fakeErrMsg := "fake error"
-	s.mockWsServe(data, errors.New(fakeErrMsg))
-	defer s.assertWsServe()
-
-	doneC, stopC, err := WsCombinedMiniMarketsStatServe([]string{"BNBBTC", "BNBETH"}, func(event WsMiniMarketsStatEvent) {
-		e := WsMiniMarketsStatEvent{
-			&WsMiniMarketStatEvent{
-				Event:       "24hrMiniTicker",
-				Time:        1523658017154,
-				Symbol:      "BNBBTC",
-				LastPrice:   "0.00175640",
-				OpenPrice:   "0.00161200",
-				HighPrice:   "0.00176000",
-				LowPrice:    "0.00159370",
-				BaseVolume:  "3479863.89000000",
-				QuoteVolume: "5725.90587704",
-			},
-			&WsMiniMarketStatEvent{
-				Event:       "24hrMiniTicker",
-				Time:        1523658017133,
-				Symbol:      "BNBETH",
-				LastPrice:   "0.02827000",
-				OpenPrice:   "0.02628100",
-				HighPrice:   "0.02830300",
-				LowPrice:    "0.02469400",
-				BaseVolume:  "456266.78000000",
-				QuoteVolume: "11873.11095682",
-			},
-		}
-		s.assertWsAllMiniMarketsStatEventEqual(e, event)
-	}, func(err error) {
-		s.r().EqualError(err, fakeErrMsg)
-	})
-	s.r().NoError(err)
-	stopC <- struct{}{}
-	<-doneC
-}
-
 func (s *websocketServiceTestSuite) assertWsAllMiniMarketsStatEventEqual(e, a WsMiniMarketsStatEvent) {
 	for i := range e {
 		s.assertWsMiniMarketsStatEventEqual(e[i], a[i])

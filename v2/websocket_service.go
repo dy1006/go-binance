@@ -763,6 +763,11 @@ func WsMiniMarketStatServe(symbol string, handler WsMiniMarketStatServeHandler, 
 	return wsServe(cfg, wsHandler, errHandler)
 }
 
+type WsCombinedMiniMarketsStatEvent struct {
+	Data   *WsMiniMarketStatEvent `json:"data"`
+	Stream string                 `json:"stream"`
+}
+
 // WsCombinedMiniMarketsStatServe serve websocket that push mini version of 24hr statistics for multiple markets every 500 ms
 func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
 	if len(symbols) == 0 || len(symbols) > 200 {
@@ -774,13 +779,13 @@ func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketStatSe
 	}
 	cfg := newWsConfig(endpoint)
 	wsHandler := func(message []byte) {
-		var event WsMiniMarketStatEvent
+		var event WsCombinedMiniMarketsStatEvent
 		err := json.Unmarshal(message, &event)
 		if err != nil {
 			errHandler(err)
 			return
 		}
-		handler(&event)
+		handler(event.Data)
 	}
 	return wsServe(cfg, wsHandler, errHandler)
 }
