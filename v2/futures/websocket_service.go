@@ -341,7 +341,7 @@ func WsCombinedMiniMarketsStatServe(symbols []string, handler WsMiniMarketsTicke
 	if len(symbols) == 0 || len(symbols) > 200 {
 		return nil, nil, errors.New("the length of symbols must be greater than 0 and less than 200")
 	}
-	endpoint := fmt.Sprintf("%s/%s@miniTicker", getCombinedEndpoint(), strings.ToLower(symbols[0]))
+	endpoint := fmt.Sprintf("%s%s@miniTicker", getCombinedEndpoint(), strings.ToLower(symbols[0]))
 	for _, s := range symbols[1:] {
 		endpoint += fmt.Sprintf("/%s@miniTicker", strings.ToLower(s))
 	}
