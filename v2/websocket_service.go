@@ -745,7 +745,7 @@ type WsMiniMarketStatEvent struct {
 }
 
 // WsMiniMarketStatServeHandler handle websocket that push mini-ticker market statistics for 24hr
-type WsMiniMarketStatServeHandler func(event WsMiniMarketStatEvent)
+type WsMiniMarketStatServeHandler func(event *WsMiniMarketStatEvent)
 
 // WsMiniMarketStatServe serve websocket that push mini version of 24hr statistics for market every 500 ms
 func WsMiniMarketStatServe(symbol string, handler WsMiniMarketStatServeHandler, errHandler ErrHandler) (doneC, stopC chan struct{}, err error) {
