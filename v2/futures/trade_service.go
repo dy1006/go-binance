@@ -226,8 +226,8 @@ func (s *ListAccountTradeService) Symbol(symbol string) *ListAccountTradeService
 }
 
 // OrderID set orderId
-func (s *ListAccountTradeService) OrderID(id int64) *ListAccountTradeService {
-	s.orderId = &id
+func (s *ListAccountTradeService) OrderID(orderID int64) *ListAccountTradeService {
+	s.orderId = &orderID
 	return s
 }
 
